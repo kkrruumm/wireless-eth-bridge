@@ -114,8 +114,8 @@ __EOF__
         fi
         ;;
     sv)
-        ln -s /var/service/nftables /var/service/
-        ln -s /var/service/dnsmasq  /var/service/
+        ln -s /etc/sv/nftables /var/service/
+        ln -s /etc/sv/dnsmasq  /var/service/
 
         if ! which ifupdown ; then
             mkdir /etc/sv/wirelessebridge
