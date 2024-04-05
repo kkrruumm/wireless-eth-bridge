@@ -3,7 +3,7 @@ A simple shell script to turn a device into a wireless ethernet bridge using nft
 
 If the system is not using ifupdown, iproute will be used instead.
 
-This script has been tested on a Raspberry Pi 3b+ running Alpine Linux, a Dell Optiplex 3040 Micro running Alpine Linux, and a Thinkpad t440s running Debian.
+This script has been tested on a Raspberry Pi 3b+ running Alpine Linux, a Dell Optiplex 3040 Micro running Alpine and Void Linux, and a Thinkpad t440s running Debian.
 
 If all goes well, when connected to wifi, the device this script is ran on should provide an IP address and internet via its ethernet port to another device.
 
@@ -24,4 +24,4 @@ If the system uses a package manager this script is familiar with, it will insta
 
 If the system uses a package manager this script is unfamiliar with, it will check the system for nftables and dnsmasq and attempt to continue.
 
-At the moment, this script only supports OpenRC and SystemD distros.
+At the moment, this script only supports Runit, OpenRC, and SystemD distros.

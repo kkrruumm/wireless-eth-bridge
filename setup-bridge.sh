@@ -15,7 +15,7 @@ dhcp="10.0.1.2,10.0.1.254,24h"
 packages="nftables dnsmasq"
 
 # Figure out what package manager is on the system
-for i in apk apt dnf pacman
+for i in xbps-install apk apt dnf pacman
 do
     if which $i ; then
         pm="$i"
@@ -24,7 +24,7 @@ do
 done
 
 # Figure out what init the system is using
-for i in rc-service systemctl
+for i in rc-service systemctl sv
 do
     if which $i ; then
         init="$i"
@@ -51,6 +51,9 @@ read ethernet
 
 # Install packages
 case $pm in
+    xbps-install)
+        xbps-install -Sy $packages
+        ;;
     apk)
         apk update && apk add $packages
         ;;
@@ -83,8 +86,8 @@ case $init in
 
         if ! which ifupdown ; then
             cat <<__EOF__ > /etc/init.d/wirelessebridge
-            #!/sbin/openrc-run
-            command='ip addr add $ethip dev $ethernet && ip link set $ethernet up && rc-service dnsmasq restart' 
+#!/sbin/openrc-run
+command='ip addr add $ethip dev $ethernet && ip link set $ethernet up && rc-service dnsmasq restart' 
 __EOF__
 
             chmod +x /etc/init.d/wirelessebridge
@@ -97,17 +100,34 @@ __EOF__
 
         if ! which ifupdown ; then
             cat <<__EOF__ > /etc/systemd/system/wirelessebridge.service
-            Description=Configure wireless eth bridge interface
+Description=Configure wireless eth bridge interface
         
-            [Service]
-            Type=oneshot
-            ExecStart=/bin/sh -c 'ip addr add $ethip dev $ethernet && ip link set $ethernet up && systemctl restart dnsmasq'
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'ip addr add $ethip dev $ethernet && ip link set $ethernet up && systemctl restart dnsmasq'
         
-            [Install]
-            WantedBy=multi-user.target
+[Install]
+WantedBy=multi-user.target
 __EOF__
 
             systemctl enable wirelessebridge
+        fi
+        ;;
+    sv)
+        ln -s /var/service/nftables /var/service/
+        ln -s /var/service/dnsmasq  /var/service/
+
+        if ! which ifupdown ; then
+            mkdir /etc/sv/wirelessebridge
+            cat <<__EOF__ > /etc/sv/wirelessebridge/run
+#!/bin/sh
+exec 2>&1
+[ ! -e /tmp/wirelessebridge ] && ip addr add $ethip dev $ethernet && ip link set $ethernet up
+[ ! -e /tmp/wirelessebridge ] && sv restart dnsmasq && touch /tmp/wirelessebridge
+__EOF__
+
+            chmod +x /etc/sv/wirelessebridge/run
+            ln -s /etc/sv/wirelessebridge /var/service/
         fi
         ;;
 esac
@@ -155,8 +175,7 @@ elif grep "#net.ipv4.ip_forward=1" /etc/sysctl.conf ; then
     sed -i -e 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
 fi
 
-# Set up dnsmasq for our dhcp server
-cat <<__EOF__ > /etc/dnsmasq.d/ethbridge.conf
+cat <<__EOF__ >> /etc/dnsmasq.conf
 interface=$ethernet
 bind-interfaces
 server=$dns
