@@ -33,7 +33,7 @@ do
 done
 
 if [ -z "$init" ]; then
-    echo "Unrecoginzed init system. Cannot continue."
+    echo "Unrecognized init system. Cannot continue."
     exit 1
 fi
 
