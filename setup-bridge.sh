@@ -6,7 +6,7 @@ if [ $USER != "root" ]; then
 fi
 
 # Define our upstream DNS
-dns="1.1.1.1"
+dns="9.9.9.9"
 # Define our ethernets address and netmask
 ethip="10.0.1.1/24"
 # Define our dhcp IP range and lease time
